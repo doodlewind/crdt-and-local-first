@@ -32,7 +32,7 @@ Yifeng Wang @ Toeverything
 - 🚩 **Challenge**: Limitations with existing data storage and sharing approaches
 - 💾 **Local-first software**: Prioritizing the usage of local resources over remote servers
 - 🔗 **CRDT**: The technology that enables local-first architecture
-- 💡 **AFFiNE**: A concrete example of a local-first application in practice
+- 💡 **AFFiNE**: Real-world use case of a local-first application.
 
 ---
 
@@ -83,7 +83,7 @@ A quick recap of PWA
 
 # The Alternative: Local-first Architecture
 
-Local state as single source of truth
+Local state as single source of truth - or what if things are **local only**?
 
 - **Complete offline functionality**: Fully usable without internet access
 - **Reduced latency**: Faster data access by eliminating server roundtrips
@@ -143,7 +143,7 @@ Conflict-free replicated data type - How it works?
 
 # CRDT: Git That Doesn't Conflict
 
-Reusing the Git mental model to understand CRDT
+Both git and CRDT would track the history of changes!
 
 Lifecycle of a CRDT-based application:
 
@@ -157,33 +157,42 @@ Differences:
 2. No conflict on `git merge`
 3. No need for manual `git pull` and `git push`
 
+See `Y.encodeStateAsUpdate(doc: Y.Doc): Uint8Array` and [y-protocols](https://github.com/yjs/y-protocols)
+
+---
+
+# Provider-based Persistence
+
+Now we have encoded the model as `Uint8Array`, then let's persist and distribute it...
+
+- CRDT model APIs are synchronous like `localStorage.setItem`, but **very fast**!
+- Underlying network and database IO are asynchronous
+- Data syncing works just like using git over SSH or HTTPS with `git remote add`
+
+<img border="rounded" class="mx-auto mt-20px w-50%" src="/assets/providers.png">
+
+---
+
+# Some FAQs for CRDT
+
+- For merge result, mathematical correctness is more important than intention keeping
+- Size can be optimized and tombstone mechanism is used
+- Don't put blob content here!
+
+---
+
+# AFFiNE: Example of Local-first App
+
+- TODO
+
 ---
 
 # CRDT-driven: State Management in Local-first Apps
 
-We just not distinguish between local and remote anymore!
+We just don't distinguish between local and remote anymore!
 
-- TODO
-
----
-
-
-# Also Better DX: Provider-based persistence
-
-- TODO `YEvent`
+- `YEvent` triggered for every YModel update
 - Making all model APIs synchronous
-
----
-
-# FAQ of CRDT
-
-- Mathematical correctness is more important than intention keeping
 - TODO
 
----
-
-# How AFFiNE Works
-
-- TODO
-
----
+<img border="rounded" class="mx-auto w-80%" src="/assets/event-flow.png">
