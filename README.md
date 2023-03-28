@@ -1,4 +1,7 @@
-# Welcome to [Slidev](https://github.com/slidevjs/slidev)!
+# CRDT and Local-first Architecture
+
+A slide built with Slidev. See exported PDF version [here](./slides.pdf)
+
 
 To start the slide show:
 
