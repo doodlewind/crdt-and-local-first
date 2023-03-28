@@ -32,7 +32,7 @@ Yifeng Wang @ Toeverything
 - 🚩 **Challenge**: Limitations with existing data storage and sharing approaches
 - 💾 **Local-first software**: Prioritizing the usage of local resources over remote servers
 - 🔗 **CRDT**: The technology that enables local-first architecture
-- 💡 **AFFiNE**: Real-world use case of a local-first application.
+- 💡 **AFFiNE**: A real-world use case
 
 ---
 
@@ -141,7 +141,7 @@ Conflict-free replicated data type - How it works?
   - Transforming **operations** - OT
   - Making **models** conflict-free - CRDT
 - To make this happen, operation-based CRDTs essentially <u>record all history operations</u>
-- Every operation contains `clientID` and logical timestamp, making it decentralized and deterministic
+- Every operation contains `clientID` and **logical timestamp**, making it decentralized and deterministic
 
 ---
 
@@ -179,7 +179,9 @@ Now we have encoded the model as `Uint8Array`, then let's persist and distribute
 
 # Some FAQs for CRDT
 
-- For merge result, mathematical correctness is more important than intention keeping
+- What if *A blabla, B blabla, A blabla...*
+  - For merge result, mathematical correctness is more important than intention keeping
+  - In real-world, the conflict resolution part in Yjs is rarely used 🤫
 - Encoded binaries are highly optimized and tombstone mechanism is used
 - Don't put blob content here!
 
@@ -189,7 +191,7 @@ Now we have encoded the model as `Uint8Array`, then let's persist and distribute
 
 - Built with the **one model, multiple views** philosophy
   - Same block tree for list view, kanban view and table view
-  - Smooth switch between document mode and whiteboard mode
+  - Smooth transition between document mode and whiteboard mode
 - Local-first, privacy-first, collaboration-ready
 - Extensible block-based editor based on [BlockSuite](https://github.com/toeverything/blocksuite)
 - Data persistence based on [OctoBase](https://github.com/toeverything/OctoBase)
@@ -242,8 +244,7 @@ document.body.appendChild(editor);
 - SQLite and Postgres persistence support
 - Plug-n-play in AFFiNE
 
-<p v-click font-bold>Hope to share more about our infra!</p>
-
+<p v-click font-bold>We will advocate this infra in the future, stay tuned!</p>
 
 ---
 
