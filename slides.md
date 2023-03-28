@@ -138,8 +138,8 @@ Conflict-free replicated data type - How it works?
 - Similar in command driven editors: defining `add_element`, `change_element`, `remove_element`...
 - Working with two kinds of data: **model** and **operation** (*commands*, *actions*...).
 - So when it comes to handling conflicts:
-  - Transforming **operations** - OT
-  - Making **models** conflict-free - CRDT
+  - Transforming **operations** - **OT** (used by Google Docs, Lark, Etherpad...)
+  - Making **models** conflict-free - **CRDT** (used by Figma)
 - To make this happen, operation-based CRDTs essentially <u>record all history operations</u>
 - Every operation contains `clientID` and **logical timestamp**, making it decentralized and deterministic
 
