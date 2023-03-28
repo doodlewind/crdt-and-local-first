@@ -68,6 +68,10 @@ But also some tradeoffs...
 
 ---
 
+<img src="/assets/notion-underground.jpg">
+
+---
+
 # Progressive Improvement: The Role of PWA
 
 A quick recap of PWA
@@ -176,23 +180,85 @@ Now we have encoded the model as `Uint8Array`, then let's persist and distribute
 # Some FAQs for CRDT
 
 - For merge result, mathematical correctness is more important than intention keeping
-- Size can be optimized and tombstone mechanism is used
+- Encoded binaries are highly optimized and tombstone mechanism is used
 - Don't put blob content here!
 
 ---
 
 # AFFiNE: Example of Local-first App
 
-- TODO
+- Built with the **one model, multiple views** philosophy
+  - Same block tree for list view, kanban view and table view
+  - Smooth switch between document mode and whiteboard mode
+- Local-first, privacy-first, collaboration-ready
+- Extensible block-based editor based on [BlockSuite](https://github.com/toeverything/blocksuite)
+- Data persistence based on [OctoBase](https://github.com/toeverything/OctoBase)
 
 ---
 
-# CRDT-driven: State Management in Local-first Apps
+# Fundamental Concepts in AFFiNE
 
-We just don't distinguish between local and remote anymore!
+Working with `Workspace`, `Page` and `Block`
 
-- `YEvent` triggered for every YModel update
-- Making all model APIs synchronous
-- TODO
+```ts
+import { Workspace, Page } from '@blocksuite/store';
+import { AffineSchemas } from '@blocksuite/blocks/models';
+import { EditorContainer } from '@blocksuite/editor';
 
-<img border="rounded" class="mx-auto w-80%" src="/assets/event-flow.png">
+// Create a workspace with one default page
+const workspace = new Workspace({ id: 'test' }).register(AffineSchemas);
+const page = workspace.createPage('page0');
+
+// Create default blocks in the page
+const pageBlockId = page.addBlock('affine:page');
+const frameId = page.addBlock('affine:frame', {}, pageBlockId);
+page.addBlock('affine:paragraph', {}, frameId);
+
+// Init editor with the page store
+const editor = new EditorContainer();
+editor.page = page;
+document.body.appendChild(editor);
+```
+
+---
+
+# CRDT-driven: State Management in AFFiNE
+
+- Type-safe block tree built on top of CRDT primitives
+- Always update YModel first, rather than using two-way binding
+- `YEvent` triggered for all YModel updates coming from different origins
+- No need to distinguish local and remote updates anymore
+- See the `handleYEvents` method in BlockSuite
+
+<img border="rounded" class="mx-auto w-70%" src="/assets/event-flow.png">
+
+---
+
+# CRDT Outside of WebView: OctoBase
+
+- Based on Yrs, the Rust port of Yjs, for binary compatibility
+- Sending binary updates between WebView and native process
+- Do searching and cross-page content analysing in native envrionment
+- SQLite and Postgres persistence support
+- Plug-n-play in AFFiNE
+
+<p v-click font-bold>Hope to share more about our infra!</p>
+
+
+---
+
+# New Challenges
+
+- High-level data schema and consistency
+- Content migration and forward compatibility
+- Content streaming
+
+---
+
+# Recap
+
+- Local-first app takes the advantages of both local and web apps
+- CRDT is the key to local-first collaboration
+- Incremental adoption of local-first features is practical
+
+<p v-click font-bold>Hope to see more in the future!</p>
