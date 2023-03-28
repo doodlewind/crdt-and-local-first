@@ -240,7 +240,7 @@ document.body.appendChild(editor);
 
 - Based on Yrs, the Rust port of Yjs, for binary compatibility
 - Sending binary updates between WebView and native process
-- Do searching and cross-page content analysing in native envrionment
+- Do searching and cross-page content analysing in native environment
 - SQLite and Postgres persistence support
 - Plug-n-play in AFFiNE
 
