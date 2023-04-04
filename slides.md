@@ -9,257 +9,141 @@ drawings:
 css: unocss
 ---
 
-# CRDT and Local-first Architecture
+# AFFiNE 背后的通用协作框架
 
-A step forward from PWA
+BlockSuite 与 CRDT 技术速览
 
-Yifeng Wang @ Toeverything
-
----
-
-# About Me
-
-- 🧑‍💻 Co-founder <a href="https://github.com/toeverything">@Toeverything</a>, currently building AFFiNE & BlockSuite
-- 👨‍🎨 Spent years working on text, graphics, and collaboration
-- 🤐 Former tech blogger behind the Great Firewall
-- 📜 Amateur JavaScript historian, translated *JavaScript the First 20 Years*
-- 🌈 #OpenSourceEnthusiast, find me on GitHub [@doodlewind](https://github.com/doodlewind)
+王译锋 @ Toeverything
 
 ---
 
-# Outline
+# 关于我
 
-- 🚩 **Challenge**: Limitations with existing data storage and sharing approaches
-- 💾 **Local-first software**: Prioritizing the usage of local resources over remote servers
-- 🔗 **CRDT**: The technology that enables local-first architecture
-- 💡 **AFFiNE**: A real-world use case
-
----
-
-# The Challenge
-
-A quick recap of web apps
-
-<div grid="~ cols-2 gap-4">
-
-<div>
-Web app comes with a lot of benefits...
-
-- ✅ Easy to distribute
-- ✅ Easy to cross-platform
-- ✅ Easy to collaborate
-
-But also some tradeoffs...
-
-- 😐 Network latency
-- 😐 Connectivity requirement
-- 😐 Data control and ownership
-</div>
-
-<div grid="~ cols-1 gap-20px">
-<img v-click border="rounded" class="mx-auto" src="/assets/world-ping-times.png">
-<img v-click border="rounded" class="w-70%" src="/assets/figma-offline.png">
-</div>
-
-</div>
-
-<div grid="~ cols-2 gap-20px" class="mt-20px">
-</div>
+- 2016 年毕业于中国科学技术大学
+- 美团学城知识库编辑器作者，开源富文本框架 Slate（20k+ star）核心贡献者
+- 稿定科技图形编辑器核心研发，主导实现 3D 文字与实时协作能力，在国内超越 Canva
+- 主导 Web PSD 编辑器 Photopea 项目国内独家合作
+- 个人前端技术专栏有数百万访问量，译著《JavaScript the First 20 Years》
+- 目前服务于 Toeverything，创建并持续维护 BlockSuite 项目
 
 ---
 
-<img src="/assets/notion-underground.jpg">
+# TLDR
+
+- 业界已有协作算法、UI 框架与编辑器框架，但仍缺失通用的协作应用技术栈，使 SaaS 开发成本高昂
+- BlockSuite 有望填补这一空白，其对 block 通用的调度、编排与协作能力为其首创
+- BlockSuite 的进化源于 CRDT 技术的突破，其背后可代表协作应用的范式变更
 
 ---
 
-# Progressive Improvement: The Role of PWA
+# BlockSuite 的技术突破点
 
-A quick recap of PWA
-
-- 📥 App shell architecture for optimal page init performance
-- 🔄 Service worker for offline caching and content serving
-- 💾 Local storage for offline data persistence
-- 📶 Background data synchronization when back online
-
-<p v-click font-bold>Do we truly need the caching mindset and a central server?</p>
+- 📝 **Block-based 架构**：拆分文档 UI 为 block 容器，兼顾高稳定性与低开发成本
+- 🧬 **CRDT 驱动**：自带实时协作、时间旅行、可插拔后端等诸多优势，且对业务逻辑无侵入
+- 🎨 **框架无关的渲染层**：支持切换多种渲染器，并以开放的 Web Component 作为集成接口
 
 ---
 
-# The Alternative: Local-first Architecture
+# Block-based 架构
 
-Local state as single source of truth - or what if things are **local only**?
+「为什么都说富文本编辑器是天坑？」
 
-- **Complete offline functionality**: Fully usable without internet access
-- **Reduced latency**: Faster data access by eliminating server roundtrips
-- **Data ownership**: Users have full control over their data and storage
-- **Enhanced privacy**: Data stays on the user's device, reducing exposure to third parties
-- **Simplified DX**: Reduced server complexity by offloading data management to clients
+- 传统 Web-based 编辑器基于单个 `contenteditable` 容器实现，开发成本较低但：
+  - 可控性差：需在单个 `contenteditable` 内维护复杂嵌套内容，难适配浏览器原生行为
+  - 能力受限：需使用有别于主流前端框架的视图层，从未被视为通用的应用开发解决方案
+- 传统 Office-like 编辑器自行实现文字排版，高度可控但：
+  - 开发成本极高
+  - 与前端生态完全隔离
+- BlockSuite 实现了 block-based 架构，使得：
+  - 100 个文本 block 内具备 100 个独立的 `contenteditable`，其中文本不再存在复杂嵌套
+  - 图片等非文本 block 不再放置在 `contenteditable` 中，无兼容问题且可用任意前端框架实现
+  - 易于集成至常规前端项目中：当前自研 Virgo 富文本组件已落地，可在流行前端框架中开箱即用
 
-<p v-click font-bold>But when it comes to collaboration...</p>
+未来的协作应用应可按需在 UI 局部嵌入 block，而非仅使用单个大块的富文本编辑内容区域
 
 ---
 
-# CRDT: Prerequisite for local-first collaboration
+# CRDT 驱动：基础概念
 
-Conflict-free replicated data type - What it is?
+CRDT 的使用方式与 OT 有何不同？
 
 ``` ts
+// BlockSuite 使用 Yjs 作为底层 CRDT 库
 import * as Y from 'yjs'
 
-// Model states can be hosted in a CRDT container
 const doc = new Y.Doc()
 
-// Different top-level YModel instances can be created
+// CRDT 支持表达嵌套的 Map 结构，亦支持 Array
 const yRoot = doc.getMap('root')
-
-// Using class constructors
 const yPoint = new Y.Map()
 yPoint.set('x', 0)
 yPoint.set('y', 0)
-
-// Composing nested structure
 yRoot.set('point', yPoint)
 
-// And essential rich text support
+// CRDT 也支持富文本
 const yName = new Y.Text()
 yName.insert(0, 'Kevin')
 yRoot.set('name', yName)
+
+// 可编码出 Uint8Array
+Y.encodeStateAsUpdate(doc)
 ```
 
-<img border="rounded" class="absolute bottom-20 right-30 w-50%" src="/assets/crdt-example.png">
+<img border="rounded" class="absolute bottom-40 right-30 w-50%" src="/assets/crdt-example.png">
 
 ---
 
-# CRDT: Prerequisite for local-first collaboration
+# CRDT 驱动：类 Git 的心智模型
 
-Conflict-free replicated data type - How it works?
+Git 和 CRDT 都会记录历史变更，且完全去中心化，本地可用
 
-- Recalling the classical Redux way: defining serializable actions -> *event sourcing*!
-- Similar in command driven editors: defining `add_element`, `change_element`, `remove_element`...
-- Working with two kinds of data: **model** and **operation** (*commands*, *actions*...).
-- So when it comes to handling conflicts:
-  - Transforming **operations** - **OT** (used by Google Docs, Lark, Etherpad...)
-  - Making **models** conflict-free - **CRDT** (used by Figma)
-- To make this happen, operation-based CRDTs essentially <u>record all history operations</u>
-- Every operation contains `clientID` and **logical timestamp**, making it decentralized and deterministic
+CRDT 应用生命周期：
 
----
+1. 获得初始的 CRDT binary，类似 `git clone`
+2. 进行本地的 `YMap.set`/`YArray.push` 等更新，类似 `git commit`
+3. 分发更新，类似 (`git push`)
 
-# CRDT: Git That Doesn't Conflict
+区别：
 
-Both git and CRDT would track the history of changes!
+1. 无需手动 `git commit`，更新 CRDT model 会立刻记录改动
+2. 不再存在 `git merge` 冲突，基于算法保证分布式合并的最终一致性
+3. 无需手动的 `git pull` 与 `git push`
 
-Lifecycle of a CRDT-based application:
-
-1. Duplicate the "repository" (`git clone`)
-2. Make changes locally (`git commit`)
-3. Push changes to the "remote" (`git push`)
-
-Differences:
-
-1. No need for manual `git commit`
-2. No conflict on `git merge`
-3. No need for manual `git pull` and `git push`
-
-See `Y.encodeStateAsUpdate(doc: Y.Doc): Uint8Array` and [y-protocols](https://github.com/yjs/y-protocols)
+CRDT 序列化格式参见 [y-protocols](https://github.com/yjs/y-protocols)，相当于协作应用的 JSON
 
 ---
 
-# Provider-based Persistence
+# CRDT 驱动：无侵入的协作状态管理
 
-Now we have encoded the model as `Uint8Array`, then let's persist and distribute it...
-
-- CRDT model APIs are synchronous like `localStorage.setItem`, but **very fast**!
-- Underlying network and database IO are asynchronous
-- Data syncing works just like using git over SSH or HTTPS with `git remote add`
-
-<img border="rounded" class="mx-auto mt-20px w-50%" src="/assets/providers.png">
-
----
-
-# Some FAQs for CRDT
-
-- What if *A blabla, B blabla, A blabla...*
-  - For merge result, mathematical correctness is more important than intention keeping
-  - In real-world, the conflict resolution part in Yjs is rarely used 🤫
-- Encoded binaries are highly optimized and tombstone mechanism is used
-- Don't put blob content here!
-
----
-
-# AFFiNE: Example of Local-first App
-
-- Built with the **one model, multiple views** philosophy
-  - Same block tree for list view, kanban view and table view
-  - Smooth transition between document mode and whiteboard mode
-- Local-first, privacy-first, collaboration-ready
-- Extensible block-based editor based on [BlockSuite](https://github.com/toeverything/blocksuite)
-- Data persistence based on [OctoBase](https://github.com/toeverything/OctoBase)
-
----
-
-# Fundamental Concepts in AFFiNE
-
-Working with `Workspace`, `Page` and `Block`
-
-```ts
-import { Workspace, Page } from '@blocksuite/store';
-import { AffineSchemas } from '@blocksuite/blocks/models';
-import { EditorContainer } from '@blocksuite/editor';
-
-// Create a workspace with one default page
-const workspace = new Workspace({ id: 'test' }).register(AffineSchemas);
-const page = workspace.createPage('page0');
-
-// Create default blocks in the page
-const pageBlockId = page.addBlock('affine:page');
-const frameId = page.addBlock('affine:frame', {}, pageBlockId);
-page.addBlock('affine:paragraph', {}, frameId);
-
-// Init editor with the page store
-const editor = new EditorContainer();
-editor.page = page;
-document.body.appendChild(editor);
-```
-
----
-
-# CRDT-driven: State Management in AFFiNE
-
-- Type-safe block tree built on top of CRDT primitives
-- Always update YModel first, rather than using two-way binding
-- `YEvent` triggered for all YModel updates coming from different origins
-- No need to distinguish local and remote updates anymore
-- See the `handleYEvents` method in BlockSuite
+- 以 CRDT model（而非经典 UI 组件 model）作为应用 single source of truth
+- 本地更新时优先更新 CRDT model，而非在两份 model 之间双向同步
+- 来自 CRDT 的 `YEvent` 可在来自多种数据源的 YModel 更新时触发，应用全局 UI 均可基于该事件更新
+- 无需在业务逻辑中区分本地更新与远程更新！
+- 参见 BlockSuite 中的 `handleYEvents` 实现
 
 <img border="rounded" class="mx-auto w-70%" src="/assets/event-flow.png">
 
 ---
 
-# CRDT Outside of WebView: OctoBase
+# CRDT 驱动：基于 provider 的可插拔持久化
 
-- Based on Yrs, the Rust port of Yjs, for binary compatibility
-- Sending binary updates between WebView and native process
-- Do searching and cross-page content analysing in native environment
-- SQLite and Postgres persistence support
-- Plug-n-play in AFFiNE
+对 CRDT model 的更新可编码为 `Uint8Array` 二进制 buffer，便于网络分发与跨平台兼容
 
-<p v-click font-bold>We will advocate this infra in the future, stay tuned!</p>
+<img border="rounded" class="mx-auto mt-20px w-50%" src="/assets/providers.png">
 
 ---
 
-# New Challenges
+# 框架无关的渲染层
 
-- High-level data schema and consistency
-- Content migration and forward compatibility
-- Content streaming
+- BlockSuite 的 store 层不依赖 DOM 与 UI 框架，可在不同渲染层中使用
+  - AFFiNE 文档模式 block 内容基于 DOM 渲染
+  - AFFiNE 白板模式笔刷内容基于 canvas 渲染
+  - 两模式间共享同一棵 block tree，历史记录互通
+- BlockSuite 使用 Web Component 实现 block，可作为标准化集成接口
 
 ---
 
-# Recap
+# 总结
 
-- Local-first app takes the advantages of both local and web apps
-- CRDT is the key to local-first collaboration
-- Incremental adoption of local-first features is practical
-
-<p v-click font-bold>Hope to see more in the future!</p>
+- Block-based 架构是建模下一代 SaaS 协作应用的通用基建，CRDT 则是该架构的基石
+- 从自研 OT 到接入 CRDT 到使用 BlockSuite，研发成本均有数量级差距，其中有巨大商业化潜力
